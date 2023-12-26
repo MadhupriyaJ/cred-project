@@ -54,28 +54,12 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
-  const { email, passwordHash } = req.body;
-  try {
-    const isAuthenticated = await dbOperation.loginUser(email, passwordHash);
-    if (isAuthenticated) {
-      res.status(200).json({ message: 'Login successful' });
-    } else {
-      res.status(401).json({ error: 'Invalid credentials' });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Failed to login user' });
-  }
-});
-
 // app.post('/login', async (req, res) => {
 //   const { email, passwordHash } = req.body;
 //   try {
-//     const user = await dbOperation.loginUser(email, passwordHash);
-
-//     if (user) {
-//       res.status(200).json({ message: 'Login successful', username: user.UserName }); // Ensure that it's 'user.UserName'
+//     const isAuthenticated = await dbOperation.loginUser(email, passwordHash);
+//     if (isAuthenticated) {
+//       res.status(200).json({ message: 'Login successful' });
 //     } else {
 //       res.status(401).json({ error: 'Invalid credentials' });
 //     }
@@ -85,9 +69,19 @@ app.post('/login', async (req, res) => {
 //   }
 // });
 
-
-
-
+app.post('/login', async (req, res) => {
+  const { email, passwordHash } = req.body;
+  try {
+    const { isAuthenticated, userName } = await dbOperation.loginUser(email, passwordHash);
+    if (isAuthenticated) {
+      res.status(200).json({ message: 'Login successful', userName });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to login user' });
+  }});
 app.get('/gettablename', async (req, res) => {
   try {
     const Tablename = await dbOperation.getTablenames();

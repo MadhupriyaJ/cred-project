@@ -6,9 +6,11 @@ import "datatables.net-buttons/js/buttons.html5.min";
 import AddScreen from "./AddScreen";
 import EditScreen from "./EditScreen";
 import { SlReload } from "react-icons/sl";
-const DataTables = ({ selectedTable, onBack }) => {
+import { useLocation } from "react-router-dom";
+import { FaEdit } from "react-icons/fa"; // Import the edit icon
+
+const DataTables = ({ selectedTable, setSelectedTable, onBack }) => {
   const [tablename, setTablename] = useState([]);
-  // const [selectedTable, setSelectedTable] = useState("");
   const [tabledetails, setTabledetails] = useState([]);
   const [dataTable, setDataTable] = useState(null);
   const [tableHistory, setTableHistory] = useState([]);
@@ -17,8 +19,8 @@ const DataTables = ({ selectedTable, onBack }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setSearchVisible] = useState(false);
 
-
   const tableRef = useRef();
+  const location = useLocation();
 
   useEffect(() => {
     console.log("Fetching table names...");
@@ -32,15 +34,14 @@ const DataTables = ({ selectedTable, onBack }) => {
       // Show the reload icon when a table is selected
       setReloadIconVisible(true);
       setSearchVisible(true);
-      
-    } else {
-      // Hide the reload icon when no table is selected
-      setReloadIconVisible(false);
-      setSearchVisible(false);
-    
-  
+    } else if (tablename.length > 0) {
+      // Fetch and display the first table from the list if no table is selected
+      const firstTable = tablename[0].TABLE_NAME;
+      setSelectedTable(firstTable);
     }
-  }, [selectedTable, searchQuery]);
+  }, [selectedTable, searchQuery, tablename]);
+
+
 
   //To get All Table from server
   const fetchTablename = async () => {
@@ -63,32 +64,22 @@ const DataTables = ({ selectedTable, onBack }) => {
         },
         body: JSON.stringify({ tableName }),
       });
-
       const data = await response.json();
       console.log("Fetched table data for", tableName, ":", data);
       setTabledetails(data);
-
-
       const filteredData = data.filter((row) => {
         const rowData = Object.values(row).join(" ").toLowerCase();
         return rowData.includes(searchQuery.toLowerCase());
       });
-  
       setTabledetails(filteredData);
-
       // Destroy the DataTable if it exists
       if (dataTable !== null) {
         dataTable.destroy();
       }
-
       // Initialize DataTable for the current tableRef
       // const newDataTable = $(tableRef.current).DataTable({});
       // console.log("DataTable initialized:", newDataTable);
       // setDataTable(newDataTable);
-
-  
-   
-      
     } catch (error) {
       console.error("Error fetching table data:", error);
     }
@@ -101,7 +92,7 @@ const DataTables = ({ selectedTable, onBack }) => {
       fetchTableData(selectedTable);
     }
   };
-  
+
   const handleBack = () => {
     // Get the previous table from history
     const previousTable = tableHistory.pop();
@@ -116,6 +107,10 @@ const DataTables = ({ selectedTable, onBack }) => {
     }
   };
 
+  const handleEdit = (row) => {
+    
+    
+  };
 
   return (
     <div className="container p-5">
@@ -130,60 +125,59 @@ const DataTables = ({ selectedTable, onBack }) => {
               Back
             </button>
           </div>
-          <div className="flex space-x-2">
-            <EditScreen />
-            <AddScreen />
-          </div>
+          {/* {location.pathname === "/customer" ? (
+            // Render non-clickable AddScreen and EditScreen
+            <div className="flex space-x-2">
+              <div className="text-gray-400 invisible">AddScreen</div>
+              <div className="text-gray-400 invisible">EditScreen</div>
+            </div>
+          ) : ( */}
+          
+            <div className="flex space-x-2">
+             
+              <AddScreen />
+            </div>
+          {/* )} */}
         </div>
         <form>
-          <label className="text-4xl font-semibold text-gray-700 form-label mt-6">
-            <div className="flex gap-3 items-center">
-              {selectedTable}
-              {isReloadIconVisible && (
-              <div className="btn btn-link text-2xl font-bold " onClick={handleReload}>
-                <SlReload />
-               
+          <label className="text-4xl font-semibold text-gray-700 w-full form-label mt-6">
+            <div className="flex justify-between">
+              <div className="flex gap-3 items-center">
+                {selectedTable}
+                {isReloadIconVisible && (
+                  <div
+                    className="btn btn-link text-2xl font-bold "
+                    onClick={handleReload}
+                  >
+                    <SlReload />
+                  </div>
+                )}
               </div>
-              )}
-{isSearchVisible && (
-              <div className="mb-3 ml-5 input-group">
-                <div className="input-group-prepend ">
-                <span className="input-group-text ">
-                <i className="fa fa-search  "></i> {/* You can use a different class for your preferred icon library */}
-                </span>
-              </div>
-                <input
-                  type="search"
-                  className="form-control"
-                  id="tableSearch"
-                  placeholder={`Search ${selectedTable}`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault(); // Prevent form submission on Enter key
-                    
-                    }
-                  }}
-                />
-              </div>
+              {isSearchVisible && (
+                <div className="mb-3 ml-5 input-group w-96">
+                  <div className="input-group-prepend ">
+                    <span className="input-group-text ">
+                      <i className="fa fa-search  "></i>{" "}
+                      {/* You can use a different class for your preferred icon library */}
+                    </span>
+                  </div>
+                  <input
+                    type="search"
+                    className="form-control"
+                    id="tableSearch"
+                    placeholder={`Search ${selectedTable}`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault(); // Prevent form submission on Enter key
+                      }
+                    }}
+                  />
+                </div>
               )}
             </div>
-            
           </label>
-          {/* <select
-            className="form-select form-select-solid required"
-            aria-label="Select example"
-            onChange={(event) => setSelectedTable(event.target.value)}
-            value={selectedTable}
-          >
-            <option value=""></option>
-            {tablename.map((table, index) => (
-              <option key={index} value={table.TABLE_NAME}>
-                {table.TABLE_NAME}
-              </option>
-            ))}
-          </select> */}
         </form>
         <table
           ref={tableRef}
@@ -193,9 +187,7 @@ const DataTables = ({ selectedTable, onBack }) => {
         >
           <thead>
             <tr className="fw-bolder fs-6 text-gray-800 px-7">
-              {selectedTable &&
-                tabledetails &&
-                tabledetails.length > 0 &&
+              {selectedTable && tabledetails && tabledetails.length > 0 &&
                 Object.keys(tabledetails[0]).map((column, index) => (
                   <th
                     className="sorting sorting_asc"
@@ -205,17 +197,14 @@ const DataTables = ({ selectedTable, onBack }) => {
                   >
                     {column}
                   </th>
+                  
                 ))}
+                 <th>Edit</th>
             </tr>
           </thead>
           <tbody>
-            {selectedTable &&
-              tabledetails &&
-              tabledetails.length > 0 &&
-              tabledetails.map((row, rowIndex) => (
-                <tr
-                  style={{
-                    backgroundColor: rowIndex % 2 === 0 ? "#F2F2F2" : "#FFFFFF", // Alternating row colors
+            {selectedTable && tabledetails && tabledetails.length > 0 && tabledetails.map((row, rowIndex) => (
+                <tr style={{ backgroundColor: rowIndex % 2 === 0 ? "#F2F2F2" : "#FFFFFF", // Alternating row colors
                   }}
                   key={rowIndex}
                 >
@@ -224,12 +213,24 @@ const DataTables = ({ selectedTable, onBack }) => {
                       {value}
                     </td>
                   ))}
+                   <td>
+                    <button
+                      className="btn btn-link"
+                      onClick={() => handleEdit(row)} // You can implement the handleEdit function to edit the row
+                    >
+																{/* <!--end::Svg Icon--> */}
+                                <EditScreen />
+															
+                    </button>
+                  </td>
                 </tr>
               ))}
           </tbody>
+        
         </table>
       </div>
     </div>
+
   );
 };
 

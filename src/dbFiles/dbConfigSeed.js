@@ -14,10 +14,10 @@
 //   module.exports = config;
   
   const config = {
-    user: 'Snowflake',
+    user: 'priya',
     password: '123',
     server: 'DESKTOP-S4TB978',
-    database: 'Ceruleanseed',
+    database: 'ceruleanseed',
     options: {
       trustServerCertificate: true,
       enableArithAbort: true,

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -10,6 +11,7 @@ const Login = ({ setAuthenticated }) => {
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [bgVideo, setBgVideo] = useState(true);
+    const[userName,setUserName]=useState("");
   
     
     const signIn = async (e) => {
@@ -27,10 +29,15 @@ const Login = ({ setAuthenticated }) => {
           body: JSON.stringify({ email, passwordHash }),
         });
   
+        const responseData = await response.json()
+        console.log("Username",responseData.userName)
+
         if (response.ok) {
-         
           
           setAuthenticated(true);
+          setUserName(responseData.userName)
+          localStorage.setItem("authenticated", "true");
+          localStorage.setItem("userRole", "customer");
 
           // Check if the user is an admin or master based on the email
           const isAdmin = email === "shahul@hotmail.com" || email.endsWith("@admin.com");
@@ -46,31 +53,73 @@ const Login = ({ setAuthenticated }) => {
 
           if (isAdmin) {
             console.log("Redirecting to admin_page reports...");
+            const userRoles = ["isAdmin"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "admin");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles));
             navigate("/admin_page");
+
           } else if (isitd) {
             console.log("Redirecting to itdstaff page...");
+            const userRoles = ["isitd"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "itdstaff");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles));
             navigate("/itdstaff");
+
           }  else if (isbusinesspandp) {
-            console.log("Redirecting to itdstaff page...");
+            console.log("Redirecting to businesspandp page...");
+
             navigate("/pandpprocedure");
+
           } else if (isbusinessfinance) {
-            console.log("Redirecting to itdstaff page...");
+            console.log("Redirecting to businessfinance page...");
+            const userRoles = ["isbusinessfinance"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "businessfinance");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles));
             navigate("/finance");
-          } 
-          else if (isbusinessaccount) {
-            console.log("Redirecting to itdstaff page...");
+
+          }else if (isbusinessaccount) {
+            console.log("Redirecting to businessaccount page...");
+            const userRoles = ["isbusinessaccount"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "businessaccount");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles));
+
             navigate("/accounts");
+
           }  else if (isbusinessaudit) {
-            console.log("Redirecting to itdstaff page...");
+            console.log("Redirecting to businessaudit page...");
+            const userRoles = ["isbusinessaudit"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "audit");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles));
             navigate("/audit");
+
           }  else if (ishr) {
-            console.log("Redirecting to itdstaff page...");
+            console.log("Redirecting to hr page...");
+            const userRoles = ["ishr"];          
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "hr");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles)); 
             navigate("/HRpage");
+
           }  else if (iscustomer) {
-          
-            console.log("Redirecting to itdstaff page...");
-            navigate(`/snowflake`);
-           
+            console.log("Redirecting to customer page...");
+            // navigate(`/snowflake`);
+            const userRoles = ["iscustomer"];
+            localStorage.setItem("authenticated", "true");
+            localStorage.setItem("userRole", "customer");
+            localStorage.setItem("userName", responseData.userName);
+            localStorage.setItem("userRoles", JSON.stringify(userRoles)); 
+            navigate("/customer", { state: { userName: responseData.userName } });           
           } 
   
           else {
@@ -85,6 +134,7 @@ const Login = ({ setAuthenticated }) => {
             }
           }
         } else {
+          localStorage.removeItem("authenticated"); 
           const errorData = await response.json();
           throw new Error(errorData.error);
         }

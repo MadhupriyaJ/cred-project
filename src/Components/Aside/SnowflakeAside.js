@@ -1,29 +1,130 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./SnowflakeAside.css";
+import KTMenu from "../js/components/menu";
+import KTDrawer from "../js/components/drawer";
+import { useNavigate } from "react-router-dom";
 
-const SnowflakeAside = () => {
+const SnowflakeAside = ({onTableSelect,setSelectedTable,selectedTable}) => {
+  // const [asideOpen, setAsideOpen] = useState(true);
+
+  // // Function to toggle the aside state
+  // const toggleAside = () => {
+  //   setAsideOpen((prevAsideOpen) => !prevAsideOpen);
+  // };
+  // const openNav = () => {
+  //   setAsideOpen(true);
+  // };
+
+  // const closeNav = () => {
+  //   setAsideOpen(false);
+  // };
+
   const [asideOpen, setAsideOpen] = useState(true);
+  const [tablename, setTablename] = useState([]);
+  const [dataTable, setDataTable] = useState(null);
+  const [tabledetails, setTabledetails] = useState([]);
+  
 
-  // Function to toggle the aside state
+  const tableRef = useRef();
+
+  const navigate = useNavigate();
+
+  // Function to handle the click event for "Users List"
+  const handleUserListClick = () => {
+    navigate("/List"); // Programmatically navigate to the /List route
+  };
+
+
+  const handleTableSelect = (tableName) => {
+ 
+    navigate(`/${tableName}`);
+  };
+
+
+
+  useEffect(() => {
+    console.log("Fetching table names...");
+    fetchTablename();
+  }, []);
+
+ 
+  //To get All Table from server
+  const fetchTablename = async () => {
+    try {
+      const response = await fetch("/gettablename");
+      const data = await response.json();
+      console.log("Fetched table names for aside:", data);
+      setTablename(data);
+    } catch (error) {
+      console.error("Error fetching table names:", error);
+    }
+  };
+  
+  const fetchTableData = async (tableName) => {
+    try {
+      const response = await fetch("/tablecategorieswithvalue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tableName }),
+      });
+
+      const data = await response.json();
+      console.log("Fetched table data for", tableName, ":", data);
+      setTabledetails(data);
+
+      // Destroy the DataTable if it exists
+      if (dataTable !== null) {
+        dataTable.destroy();
+      }
+      onTableSelect(tableName); // Call the callback function to pass the selected table name
+
+      // Initialize DataTable for the current tableRef
+      const newDataTable = $(tableRef.current).DataTable({
+        searching: true, // Enable searching
+      });
+      console.log("DataTable initialized:", newDataTable);
+      setDataTable(newDataTable);
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+    }
+  };
   const toggleAside = () => {
     setAsideOpen((prevAsideOpen) => !prevAsideOpen);
   };
   const openNav = () => {
     setAsideOpen(true);
   };
-
   const closeNav = () => {
     setAsideOpen(false);
   };
+  
+  // KTMenu.createInstances();
+  // var menuElement = document.querySelector("#kt_menu");
+  // var menu = KTMenu.getInstance(menuElement);
+  // KTMenu.updateDropdowns();
+  // KTMenu.updateByLinkAttribute("/users/group/add");
+  // KTMenu.hideDropdowns();
+  // KTDrawer.createInstances();
+  // var drawerElement = document.querySelector("#kt_drawer_example_1");
+  // var drawer = KTDrawer.getInstance(drawerElement);
+  // KTDrawer.hideAll();
+  // KTDrawer.updateAll();
+
+
+
+
+
 
   return (
     <div
-      className="{`aside ${asideOpen ? 'open' : ''}`}"
+      className="{`aside ${asideOpen ? 'open' : ''}h-[100vh]`} "
       onMouseEnter={openNav}
     >
       <div
         id="kt_aside"
-        className={`aside aside-white aside-hoverable mt-0 sidenav h-screen  ${
+        className={`aside aside-white aside-hoverable mt-0 sidenav h-full  ${
           asideOpen ? "w-64" : "w-14"
         } duration-300 h-full bg-slate-900 text-white relative`}
         data-kt-drawer="false"
@@ -137,7 +238,7 @@ const SnowflakeAside = () => {
                   <span class="menu-icon ">
                     {/*<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg--> */}
                     <span class="svg-icon svg-icon-2 ">
-                      <svg
+                      {/* <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
                         height="24"
@@ -179,17 +280,18 @@ const SnowflakeAside = () => {
                           rx="2"
                           fill="white"
                         ></rect>
-                      </svg>
+                      </svg> */}
                     </span>
                     {/*<!--end::Svg Icon--> */}
                   </span>
-                  <span class="menu-title ">Administrator</span>
+                  {/* <span class="menu-title ">Administrator</span> */}
                 </a>
               </div>
-              <div class="menu-item">
+              
+              {/* <div class="menu-item">
                 <a class="menu-link active" href="#">
                   <span class="menu-icon">
-                    {/*<!--begin::Svg Icon | path: icons/duotune/art/art002.svg--> */}
+                 
                     <span class="svg-icon svg-icon-2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -209,16 +311,16 @@ const SnowflakeAside = () => {
                         ></path>
                       </svg>
                     </span>
-                    {/*<!--end::Svg Icon--> */}
+                  
                   </span>
                   <span class="menu-title">Roles</span>
                 </a>
-              </div>
+              </div> */}
 
               <div class="menu-item">
                 <a
                   class="menu-link"
-                  href="../../demo1/dist/dashboards/only-header.html"
+                  // href="../../demo1/dist/dashboards/only-header.html"
                 >
                   <span class="menu-icon">
                     {/*<!--begin::Svg Icon | path: icons/duotune/layouts/lay010.svg--> */}
@@ -246,7 +348,55 @@ const SnowflakeAside = () => {
                   <span class="menu-title">Only Header</span>
                 </a>
               </div>
-
+   {tablename.map((table, index) => (
+                <div class="menu-item " key={index}>
+                  <p class="menu-link" 
+                  onClick={() => {fetchTableData(table.TABLE_NAME)
+                    handleTableSelect(table.TABLE_NAME)}}
+                  >
+                    <span class="menu-icon ">
+                      {/*<!--begin::Svg Icon | path: icons/duotune/general/gen025.svg--> */}
+                      <span class="svg-icon svg-icon-2 ">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M11.2929 2.70711C11.6834 2.31658 12.3166 2.31658 12.7071 2.70711L15.2929 5.29289C15.6834 5.68342 15.6834 6.31658 15.2929 6.70711L12.7071 9.29289C12.3166 9.68342 11.6834 9.68342 11.2929 9.29289L8.70711 6.70711C8.31658 6.31658 8.31658 5.68342 8.70711 5.29289L11.2929 2.70711Z"
+                            fill="currentColor"
+                          />
+                          <path
+                            d="M11.2929 14.7071C11.6834 14.3166 12.3166 14.3166 12.7071 14.7071L15.2929 17.2929C15.6834 17.6834 15.6834 18.3166 15.2929 18.7071L12.7071 21.2929C12.3166 21.6834 11.6834 21.6834 11.2929 21.2929L8.70711 18.7071C8.31658 18.3166 8.31658 17.6834 8.70711 17.2929L11.2929 14.7071Z"
+                            fill="currentColor"
+                          />
+                          <path
+                            opacity="0.3"
+                            d="M5.29289 8.70711C5.68342 8.31658 6.31658 8.31658 6.70711 8.70711L9.29289 11.2929C9.68342 11.6834 9.68342 12.3166 9.29289 12.7071L6.70711 15.2929C6.31658 15.6834 5.68342 15.6834 5.29289 15.2929L2.70711 12.7071C2.31658 12.3166 2.31658 11.6834 2.70711 11.2929L5.29289 8.70711Z"
+                            fill="currentColor"
+                          />
+                          <path
+                            opacity="0.3"
+                            d="M17.2929 8.70711C17.6834 8.31658 18.3166 8.31658 18.7071 8.70711L21.2929 11.2929C21.6834 11.6834 21.6834 12.3166 21.2929 12.7071L18.7071 15.2929C18.3166 15.6834 17.6834 15.6834 17.2929 15.2929L14.7071 12.7071C14.3166 12.3166 14.3166 11.6834 14.7071 11.2929L17.2929 8.70711Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                      </span>
+                      {/*<!--end::Svg Icon--> */}
+                    </span>
+                    <a
+                      class="menu-title"
+                      // key={index}
+                      // value={table.TABLE_NAME}
+                      // href="/customer"
+                    >
+                      {table.TABLE_NAME}
+                    </a>
+                  </p>
+                </div>
+              ))}
               <div class="menu-item">
                 <div class="menu-content pt-8 pb-2">
                   {asideOpen && (
@@ -256,6 +406,7 @@ const SnowflakeAside = () => {
                   )}
                 </div>
               </div>
+              
               <div
                 data-kt-menu-trigger="click"
                 class="menu-item menu-accordion"
@@ -292,6 +443,22 @@ const SnowflakeAside = () => {
                   <span class="menu-arrow"></span>
                 </span>
                 <div class="menu-sub menu-sub-accordion menu-active-bg">
+                <div
+                    data-kt-menu-trigger="click"
+                    class="menu-item menu-accordion"
+                  >
+                    <span class="menu-link">
+                      <span class="menu-bullet">
+                        <span class="bullet bullet-dot"></span>
+                      </span>
+                      <span class="menu-title">
+                      <a href="/customer">Data Tables</a></span>
+                      <span class="menu-arrow" ></span>
+                    </span>
+                    <div class="menu-sub menu-sub-accordion menu-active-bg">
+                    
+                    </div>
+                  </div>
                   <div
                     data-kt-menu-trigger="click"
                     class="menu-item menu-accordion"
@@ -372,7 +539,7 @@ const SnowflakeAside = () => {
                       </div>
                     </div>
                   </div>
-                  {/* <div
+                  <div
                     data-kt-menu-trigger="click"
                     class="menu-item menu-accordion"
                   >
@@ -582,7 +749,7 @@ const SnowflakeAside = () => {
                       </div>
                     </div>
                   </div>
-                  <div
+                   {/*<div
                     data-kt-menu-trigger="click"
                     class="menu-item menu-accordion"
                   >
@@ -742,7 +909,7 @@ const SnowflakeAside = () => {
                   >
                     <span class="menu-link">
                       <span class="menu-icon">
-                        {/*<!--begin::Svg Icon | path: icons/duotune/communication/com013.svg-->
+                        {/* <!--begin::Svg Icon | path: icons/duotune/communication/com013.svg--> */}
                     <span class="svg-icon svg-icon-2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -766,7 +933,7 @@ const SnowflakeAside = () => {
                         ></rect>
                       </svg>
                     </span>
-                    {/*<!--end::Svg Icon--> */}
+                {/* <!--end::Svg Icon--> */}
                       </span>
                       <span class="menu-title">Account</span>
                       <span class="menu-arrow"></span>
@@ -974,9 +1141,11 @@ const SnowflakeAside = () => {
                         </span>
                         <div class="menu-sub menu-sub-accordion">
                           <div class="menu-item">
+                            {/* List.js */}
                             <a
                               class="menu-link"
-                              href="../../demo1/dist/apps/user-management/users/list.html"
+                              // href=""
+                              onClick={handleUserListClick}
                             >
                               <span class="menu-bullet">
                                 <span class="bullet bullet-dot"></span>
@@ -1249,7 +1418,7 @@ const SnowflakeAside = () => {
             {/*<!--end::Aside menu--> */}
             {/*<!--begin::Footer--> */}
             <div
-              class="aside-footer flex-column-auto p-4 "
+              class="aside-footer flex-column-auto p-4  "
               id="kt_aside_footer"
             >
               <a

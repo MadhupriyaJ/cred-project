@@ -37,6 +37,20 @@ const getUserByEmail = async (email) => {
   }
 };
 
+// const loginUser = async (email, passwordHash) => {
+//   try {
+//     let pool = await sql.connect(config);
+//     const result = await pool
+//       .request()
+//       .input("Email", sql.NVarChar(255), email)
+//       .input("PasswordHash", sql.NVarChar(64), passwordHash)
+//       .query("SELECT COUNT(*) AS UserCount FROM AdminandUserLogin WHERE Email = @Email AND PasswordHash = @PasswordHash");
+//     const userCount = result.recordset[0].UserCount;
+//     return userCount === 1; // Return true if user exists, false otherwise
+//   } catch (error) {
+//     //console.log(error);
+//   }
+// };
 const loginUser = async (email, passwordHash) => {
   try {
     let pool = await sql.connect(config);
@@ -44,11 +58,17 @@ const loginUser = async (email, passwordHash) => {
       .request()
       .input("Email", sql.NVarChar(255), email)
       .input("PasswordHash", sql.NVarChar(64), passwordHash)
-      .query("SELECT COUNT(*) AS UserCount FROM AdminandUserLogin WHERE Email = @Email AND PasswordHash = @PasswordHash");
-    const userCount = result.recordset[0].UserCount;
-    return userCount === 1; // Return true if user exists, false otherwise
+      .query("SELECT UserName, COUNT(*) AS UserCount FROM AdminandUserLogin WHERE Email = @Email AND PasswordHash = @PasswordHash GROUP BY UserName");
+    const userCount = result.recordset.length;
+    if (userCount === 1) {
+      const userName = result.recordset[0].UserName;
+      return { isAuthenticated: true, userName };
+    } else {
+      return { isAuthenticated: false, userName: null };
+    }
   } catch (error) {
-    //console.log(error);
+    console.error(error);
+    throw error;
   }
 };
 
